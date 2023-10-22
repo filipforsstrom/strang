@@ -10,7 +10,7 @@ function init()
         steps = 8,
         rotation = 0,
         sequins = s {},
-        freq = s {50, 100, 200, 400, 800, 1600}
+        freq = s {100}
     }, {
         pulses = 1,
         steps = 1,
@@ -18,11 +18,11 @@ function init()
         sequins = s {},
         freq = s {50}
     }, {
-        pulses = 6,
-        steps = 8,
+        pulses = 3,
+        steps = 16,
         rotation = 7,
         sequins = s {},
-        freq = s {50}
+        freq = s {100, 200, 400, 800}
     }, {
         pulses = 1,
         steps = 1,
@@ -48,16 +48,16 @@ function init()
     step = s {1, 2, 3, 4}
     current_step = 1
     mute = s {0.1, 16, 4, 1, 20}
-    bend = s {0, 10, 0, -10, 0}
-    vibrato = s {0, 0, 0, 0, 0.05}
+    bend = s {0, 10, 0}
+    -- vibrato = s {0, 0, 0, 0, 0.5}
     amp = s {0.1, 0.5, 1, 10, 100}
 
-    step_speed = 1
-    pluck_speed = 1
-    mute_speed = 1
-    bend_speed = 1
-    vibrato_speed = 1
-    amp_speed = 1
+    step_clock_speed = 1
+    pluck_clock_speed = 1
+    mute_clock_speed = 1
+    bend_clock_speed = 1
+    vibrato_clock_speed = 1
+    amp_clock_speed = 1
     clock.run(iter)
     clock.run(pluck)
     clock.run(mute_clock)
@@ -66,27 +66,17 @@ function init()
     clock.run(amp_clock)
 end
 
-function concatenate_tables(t)
-    local result = {}
-    for i = 1, #t do
-        for j = 1, #t[i] do
-            table.insert(result, t[i][j])
-        end
-    end
-    return result
-end
-
 function iter()
     while true do
-        clock.sync(step_speed)
+        clock.sync(step_clock_speed)
         current_step = step()
-        pluck_speed = er_tables[current_step].steps
+        pluck_clock_speed = er_tables[current_step].steps
     end
 end
 
 function pluck()
     while true do
-        clock.sync(1 / pluck_speed)
+        clock.sync(1 / pluck_clock_speed)
         local trig = er_tables[current_step].sequins()
         if trig then
             local freq = er_tables[current_step].freq()
@@ -101,14 +91,14 @@ end
 
 function mute_clock()
     while true do
-        clock.sync(1 / mute_speed)
+        clock.sync(1 / mute_clock_speed)
         engine.string_decay('all', mute())
     end
 end
 
 function bend_clock()
     while true do
-        clock.sync(1 / mute_speed)
+        clock.sync(1 / mute_clock_speed)
         -- print(bend())
         engine.bend_depth('all', bend())
     end
@@ -116,14 +106,14 @@ end
 
 function vibrato_clock()
     while true do
-        clock.sync(1 / vibrato_speed)
+        clock.sync(1 / vibrato_clock_speed)
         engine.vibrato_depth('all', vibrato())
     end
 end
 
 function amp_clock()
     while true do
-        clock.sync(1 / amp_speed)
+        clock.sync(1 / amp_clock_speed)
         engine.amp('all', amp())
     end
 end
