@@ -5,45 +5,45 @@ engine.name = 'Strang'
 function init()
     engine.click_amp('all', 0.01)
     engine.amp('all', 10)
-    er_tables = {{
+    riff = {{
         pulses = 4,
         steps = 8,
         rotation = 0,
         sequins = s {},
-        freq = s {100}
+        freqs = s {100}
     }, {
         pulses = 1,
         steps = 1,
         rotation = 0,
         sequins = s {},
-        freq = s {50}
+        freqs = s {50}
     }, {
         pulses = 3,
         steps = 16,
         rotation = 7,
         sequins = s {},
-        freq = s {100, 200, 400, 800}
+        freqs = s {100, 200, 400, 800}
     }, {
         pulses = 1,
         steps = 1,
         rotation = 0,
         sequins = s {},
-        freq = s {50}
+        freqs = s {50}
     }}
 
     -- set triggers using er.gen and the values from er_tables
-    for i = 1, #er_tables do
-        local pulses = er_tables[i].pulses
-        local steps = er_tables[i].steps
-        local rotation = er_tables[i].rotation
+    for i = 1, #riff do
+        local pulses = riff[i].pulses
+        local steps = riff[i].steps
+        local rotation = riff[i].rotation
         local trigger = er.gen(pulses, steps, rotation)
-        er_tables[i].triggers = trigger
+        riff[i].triggers = trigger
     end
 
-    er_tables[1].sequins:settable(er_tables[1].triggers)
-    er_tables[2].sequins:settable(er_tables[2].triggers)
-    er_tables[3].sequins:settable(er_tables[3].triggers)
-    er_tables[4].sequins:settable(er_tables[4].triggers)
+    riff[1].sequins:settable(riff[1].triggers)
+    riff[2].sequins:settable(riff[2].triggers)
+    riff[3].sequins:settable(riff[3].triggers)
+    riff[4].sequins:settable(riff[4].triggers)
 
     step = s {1, 2, 3, 4}
     current_step = 1
@@ -70,16 +70,16 @@ function iter()
     while true do
         clock.sync(step_clock_speed)
         current_step = step()
-        pluck_clock_speed = er_tables[current_step].steps
+        pluck_clock_speed = riff[current_step].steps
     end
 end
 
 function pluck()
     while true do
         clock.sync(1 / pluck_clock_speed)
-        local trig = er_tables[current_step].sequins()
+        local trig = riff[current_step].sequins()
         if trig then
-            local freq = er_tables[current_step].freq()
+            local freq = riff[current_step].freqs()
             engine.amp('all', amp())
             engine.trig(1, freq, 1)
             -- engine.trig(2, freq * (3 / 2), 1)
