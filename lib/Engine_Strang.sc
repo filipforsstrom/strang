@@ -44,9 +44,7 @@ Engine_Strang : CroneEngine {
 	// IMPORTANT
 	free {
 		kernel.freeAllNotes;
-		// groups are lightweight but they are still persistent on the server and nodeIDs are finite,
-		//   so they do need to be freed:
-		kernel.voiceGroup.free;
+		kernel.free;
 	} // free
 
 

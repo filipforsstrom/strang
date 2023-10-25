@@ -232,6 +232,10 @@ Strang {
 	free {
 		// IMPORTANT
 		voiceGroup.free;
+		distortion.free;
+		filter.free;
+		tremolo.free;
+		noise.free;
 	}
 
 }
