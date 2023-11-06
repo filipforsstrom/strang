@@ -7,11 +7,31 @@ play = true
 -- play = false
 
 function init()
+    message = "sträng"
+    screen_dirty = true
+    redraw_clock_id = clock.run(redraw_clock)
+
     engine.click_amp('all', 0.01)
     engine.amp('all', 10)
-    riff1 = riff.init()
+    riff1 = riff.new()
 
-    trigger_step = s {1, 1, 2, 4, 1, 1, 3}
+    -- riff1.triggers[1].pulses = 1
+    -- riff1.triggers[1].steps = 1
+    -- riff1.triggers[1].rotation = 0
+    -- riff1.triggers[3].pulses = 5
+    -- riff1.triggers[3].steps = 7
+    -- riff1.triggers[3].rotation = 0
+    -- riff.update()
+
+    -- riff:set_random_freqs(riff1)
+    -- riff1:set_pulses(1, 7)
+    -- riff1:set_rotation(2, 8)
+    -- riff1:set_steps(2, 3)
+    -- riff1:set_pulses(2, 3)
+    -- riff1:set_pulses(4, 5)
+    -- riff1:set_random_freqs()
+
+    trigger_step = s {1, 2, 3, 4}
     current_trigger_step = 1
     freq_step = s {1, 3, 4, 1, 2, 3}
     current_freq_step = 1
@@ -21,7 +41,7 @@ function init()
     current_bend_step = 1
     vibrato_step = s {1, 1, 1, 3, 1, 1, 1, 4}
     current_vibrato_step = 1
-    amp_step = s {1, 2, 1, 2, 3}
+    amp_step = s {1, 2, 3, 4}
     current_amp_step = 1
 
     step_clock_speed = 1
@@ -32,13 +52,47 @@ function init()
     amp_clock_speed = 1
 
     if play then
-        clock.run(iter)
-        clock.run(pluck)
+        iter_clock = clock.run(iter)
+        pluck_clock = clock.run(pluck)
         clock.run(mute_clock)
         clock.run(bend_clock)
         clock.run(vibrato_clock)
         clock.run(amp_clock)
     end
+end
+
+function key(k, z)
+    if z == 0 then
+        return
+    end
+    if k == 2 then
+        press_down(2)
+        stop()
+    end
+    if k == 3 then
+        press_down(3)
+        start()
+    end
+    screen_dirty = true
+end
+
+function press_down(i)
+    message = "press down " .. i
+end
+
+function start()
+    stop()
+    message = "start"
+    iter_clock = clock.run(iter)
+    pluck_clock = clock.run(pluck)
+end
+
+function stop()
+    message = "stop"
+    clock.cancel(iter_clock)
+    clock.cancel(pluck_clock)
+    engine.free_all_notes()
+
 end
 
 function iter()
@@ -92,10 +146,36 @@ function amp_clock()
     while true do
         clock.sync(1 / amp_clock_speed)
         current_amp_step = amp_step()
-        engine.amp('all', riff1.amps[current_amp_step]())
+        engine.amp('all', riff1.amps[current_amp_step].sequins())
     end
 end
 
 function cleanup()
     engine.free()
+end
+
+function redraw_clock()
+    while true do
+        clock.sleep(1 / 15)
+        if screen_dirty then
+            redraw()
+            screen_dirty = false
+        end
+    end
+end
+
+function redraw()
+    screen.clear()
+    screen.aa(1)
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.level(15)
+    screen.move(64, 32)
+    screen.text_center(message)
+    screen.pixel(0, 0)
+    screen.pixel(127, 0)
+    screen.pixel(127, 63)
+    screen.pixel(0, 63)
+    screen.fill()
+    screen.update()
 end
