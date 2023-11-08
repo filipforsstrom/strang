@@ -1,31 +1,36 @@
 local riff = {}
 
-local function update_trigger_sequins(triggers)
+local function update_trigger_sequins(t)
     -- collect values to pass to er.gen
-    local pulses = triggers.pulses
-    local steps = triggers.steps
-    local rotation = triggers.rotation
+    local pulses = t.pulses
+    local steps = t.steps
+    local rotation = t.rotation
 
     -- generate and update sequins
     local er_triggers = er.gen(pulses, steps, rotation)
-    triggers.sequins:settable(er_triggers)
+    t.sequins:settable(er_triggers)
 end
 
-local function update_amp_sequins(r, a)
-    local pulses = r.pulses
-    local amps = a.data
-    local amps_sequins = {}
+local function update_sequins(t, e)
+    local pulses = t.pulses
+    local expression_sequins = {}
+    local expressions = e.data
 
     for i = 1, pulses do
-        table.insert(amps_sequins, amps[(i - 1) % #amps + 1])
+        local index = (i - 1) % #expressions + 1
+        local value = expressions[index]
+        table.insert(expression_sequins, value)
     end
-    a.sequins:settable(amps_sequins)
-end
 
+    e.sequins:settable(expression_sequins)
+end
 
 function riff.new()
     local length = 8
     local r = {
+        global = {
+            length = 8
+        },
         triggers = {},
         amps = {},
         freqs = {},
@@ -35,7 +40,7 @@ function riff.new()
     }
 
     -- add default data
-    for i = 1, length do
+    for i = 1, r.global.length do
         table.insert(r.triggers, {
             pulses = 4,
             steps = 7,
@@ -43,53 +48,40 @@ function riff.new()
             sequins = s {}
         })
         table.insert(r.amps, {
-            data = {100, 0.5},
+            data = {0.5, 0.5, 0.5, 0.5},
             sequins = s {}
         })
-        table.insert(r.freqs, s {50})
-        table.insert(r.mutes, s {0.5})
-        table.insert(r.bends, s {0})
-        table.insert(r.vibratos, s {0})
+        table.insert(r.freqs, {
+            data = {50, 50, 50, 50},
+            sequins = s {}
+        })
+        table.insert(r.mutes, {
+            data = {1, 1, 1, 0},
+            sequins = s {}
+        })
+        table.insert(r.bends, {
+            data = {0, 0, 0, 0},
+            sequins = s {}
+        })
+        table.insert(r.vibratos, {
+            data = {0, 0, 0, 0},
+            sequins = s {}
+        })
     end
 
     -- generate sequins
-    for i = 1, #r.triggers do
+    for i = 1, r.global.length do
         update_trigger_sequins(r.triggers[i])
-        update_amp_sequins(r.triggers[i], r.amps[i])
+        update_sequins(r.triggers[i], r.amps[i])
+        update_sequins(r.triggers[i], r.freqs[i])
+        update_sequins(r.triggers[i], r.mutes[i])
+        update_sequins(r.triggers[i], r.bends[i])
+        update_sequins(r.triggers[i], r.vibratos[i])
     end
 
     return setmetatable(r, {
         __index = riff
     })
-end
-
-function riff:update_all_pulses(r)
-    for i = 1, #r.triggers do
-        local triggers = r.triggers[i]
-        local pulses = triggers.pulses
-        local steps = triggers.steps
-        local rotation = triggers.rotation
-
-        local er_triggers = er.gen(pulses, steps, rotation)
-        triggers.sequins:settable(er_triggers)
-    end
-end
-
-function riff:set_random_freqs()
-    -- loop over each item in self.freqs
-    for i = 1, #self.freqs do
-        -- generate a new table of random frequencies
-        local random_freqs = {}
-        for j = 1, #self.freqs[i] do
-            -- generate a random frequency between some range
-            -- adjust the range as needed
-            local random_freq = math.random(50, 1000)
-            table.insert(random_freqs, random_freq)
-        end
-
-        -- overwrite the current freq data with the random freqs
-        self.freqs[i]:settable(random_freqs)
-    end
 end
 
 function riff:set_pulses(index, new_pulses)
@@ -114,6 +106,51 @@ function riff:set_rotation(index, new_rotation)
     if self.triggers[index] then
         self.triggers[index].rotation = new_rotation
         update_trigger_sequins(self.triggers[index])
+    else
+        print("Error: Invalid index")
+    end
+end
+
+function riff:set_frequency(riff_index, freq_index, new_frequency)
+    if self.freqs[riff_index] then
+        self.freqs[riff_index].data[freq_index] = new_frequency
+        update_sequins(self.triggers[riff_index], self.freqs[riff_index])
+    else
+        print("Error: Invalid index")
+    end
+end
+
+function riff:set_amp(riff_index, amp_index, new_amp)
+    if self.amps[riff_index] then
+        self.amps[riff_index].data[amp_index] = new_amp
+        update_sequins(self.triggers[riff_index], self.amps[riff_index])
+    else
+        print("Error: Invalid index")
+    end
+end
+
+function riff:set_mute(riff_index, mute_index, new_mute)
+    if self.mutes[riff_index] then
+        self.mutes[riff_index].data[mute_index] = new_mute
+        update_sequins(self.triggers[riff_index], self.mutes[riff_index])
+    else
+        print("Error: Invalid index")
+    end
+end
+
+function riff:set_bend(riff_index, bend_index, new_bend)
+    if self.bends[riff_index] then
+        self.bends[riff_index].data[bend_index] = new_bend
+        update_sequins(self.triggers[riff_index], self.bends[riff_index])
+    else
+        print("Error: Invalid index")
+    end
+end
+
+function riff:set_vibrato(riff_index, vibrato_index, new_vibrato)
+    if self.vibratos[riff_index] then
+        self.vibratos[riff_index].data[vibrato_index] = new_vibrato
+        update_sequins(self.triggers[riff_index], self.vibratos[riff_index])
     else
         print("Error: Invalid index")
     end

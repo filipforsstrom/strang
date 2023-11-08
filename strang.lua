@@ -15,31 +15,30 @@ function init()
     engine.amp('all', 10)
     riff1 = riff.new()
 
-    -- riff1.triggers[1].pulses = 1
-    -- riff1.triggers[1].steps = 1
-    -- riff1.triggers[1].rotation = 0
-    -- riff1.triggers[3].pulses = 5
-    -- riff1.triggers[3].steps = 7
-    -- riff1.triggers[3].rotation = 0
-    -- riff.update()
-
-    -- riff:set_random_freqs(riff1)
-    -- riff1:set_pulses(1, 7)
-    -- riff1:set_rotation(2, 8)
+    riff1:set_pulses(1, 7)
+    riff1:set_frequency(1, 1, 25)
+    riff1:set_mute(1, 2, 100)
+    riff1:set_frequency(1, 2, 400)
+    riff1:set_bend(1, 2, 100)
+    riff1:set_amp(1, 1, 100)
+    riff1:set_amp(1, 2, 0.1)
+    riff1:set_frequency(2, 2, 1300)
+    riff1:set_mute(2, 2, 1000)
+    riff1:set_vibrato(2, 2, 0.05)
+    riff1:set_rotation(2, 8)
     -- riff1:set_steps(2, 3)
     -- riff1:set_pulses(2, 3)
     -- riff1:set_pulses(4, 5)
-    -- riff1:set_random_freqs()
 
     trigger_step = s {1, 2, 3, 4}
     current_trigger_step = 1
-    freq_step = s {1, 3, 4, 1, 2, 3}
+    freq_step = s {1, 2, 3, 4}
     current_freq_step = 1
-    mute_step = s {1, 1}
+    mute_step = s {1, 2, 3, 4}
     current_mute_step = 1
-    bend_step = s {1, 1, 1, 1, 1, 2, 1, 1, 1, 3}
+    bend_step = s {1, 2, 3, 4}
     current_bend_step = 1
-    vibrato_step = s {1, 1, 1, 3, 1, 1, 1, 4}
+    vibrato_step = s {1, 2, 3, 4}
     current_vibrato_step = 1
     amp_step = s {1, 2, 3, 4}
     current_amp_step = 1
@@ -54,10 +53,10 @@ function init()
     if play then
         iter_clock = clock.run(iter)
         pluck_clock = clock.run(pluck)
-        clock.run(mute_clock)
-        clock.run(bend_clock)
-        clock.run(vibrato_clock)
-        clock.run(amp_clock)
+        -- clock.run(mute_clock)
+        -- clock.run(bend_clock)
+        -- clock.run(vibrato_clock)
+        -- clock.run(amp_clock)
     end
 end
 
@@ -100,6 +99,10 @@ function iter()
         clock.sync(step_clock_speed)
         current_trigger_step = trigger_step()
         current_freq_step = freq_step()
+        current_amp_step = amp_step()
+        current_mute_step = mute_step()
+        current_bend_step = bend_step()
+        current_vibrato_step = vibrato_step()
         pluck_clock_speed = riff1.triggers[current_trigger_step].steps
     end
 end
@@ -109,7 +112,15 @@ function pluck()
         clock.sync(1 / pluck_clock_speed)
         local trig = riff1.triggers[current_trigger_step].sequins()
         if trig then
-            local freq = riff1.freqs[current_freq_step]()
+            local freq = riff1.freqs[current_freq_step].sequins()
+            local amp = riff1.amps[current_amp_step].sequins()
+            local mute = riff1.mutes[current_mute_step].sequins()
+            local bend = riff1.bends[current_bend_step].sequins()
+            local vibrato = riff1.vibratos[current_vibrato_step].sequins()
+            engine.amp('all', amp)
+            engine.string_decay('all', mute)
+            engine.bend_depth('all', bend)
+            engine.vibrato_depth('all', vibrato)
             engine.trig(1, freq, 1)
             -- engine.trig(2, freq * (3 / 2), 1)
             -- engine.amp(current_step, 0.5)
