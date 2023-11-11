@@ -1,27 +1,30 @@
 s = require 'sequins'
 er = require 'er'
 riff = include 'lib/riff'
-engine.name = 'Strang'
+_engine = include 'lib/_engine'
+parameters = include 'lib/parameters'
 
 play = true
 -- play = false
 
 function init()
+    parameters.init()
     message = "sträng"
     screen_dirty = true
     redraw_clock_id = clock.run(redraw_clock)
 
-    engine.click_amp('all', 0.01)
-    engine.amp('all', 10)
+    engine.click_amp('all', 0.008)
+    -- engine.amp('all', 10)
     riff1 = riff.new()
 
     riff1:set_pulses(1, 7)
     riff1:set_frequency(1, 1, 25)
     riff1:set_mute(1, 2, 100)
     riff1:set_frequency(1, 2, 400)
-    riff1:set_bend(1, 2, 100)
-    riff1:set_amp(1, 1, 100)
-    riff1:set_amp(1, 2, 0.1)
+    riff1:set_bend(1, 2, 0.1)
+    riff1:set_bend(2, 1, 1)
+    -- riff1:set_amp(1, 1, 0.5)
+    -- riff1:set_amp(1, 2, 0.1)
     riff1:set_frequency(2, 2, 1300)
     riff1:set_mute(2, 2, 1000)
     riff1:set_vibrato(2, 2, 0.05)
@@ -117,11 +120,14 @@ function pluck()
             local mute = riff1.mutes[current_mute_step].sequins()
             local bend = riff1.bends[current_bend_step].sequins()
             local vibrato = riff1.vibratos[current_vibrato_step].sequins()
-            engine.amp('all', amp)
+            -- engine.amp('all', amp)
             engine.string_decay('all', mute)
-            engine.bend_depth('all', bend)
+            -- engine.bend_depth('all', bend)
+            _engine.bend_depth(bend)
             engine.vibrato_depth('all', vibrato)
-            engine.trig(1, freq, 1)
+            -- engine.trig(1, freq, 1)
+            _engine.trig(1, freq, 1)
+            _engine.amp(amp)
             -- engine.trig(2, freq * (3 / 2), 1)
             -- engine.amp(current_step, 0.5)
             -- engine.string_decay(current_step, 16)

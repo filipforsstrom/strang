@@ -48,7 +48,7 @@ function riff.new()
             sequins = s {}
         })
         table.insert(r.amps, {
-            data = {0.5, 0.5, 0.5, 0.5},
+            data = {0.8},
             sequins = s {}
         })
         table.insert(r.freqs, {
