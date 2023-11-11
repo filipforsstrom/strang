@@ -8,32 +8,20 @@ play = true
 -- play = false
 
 function init()
-    parameters.init()
+
     message = "sträng"
     screen_dirty = true
     redraw_clock_id = clock.run(redraw_clock)
 
     engine.click_amp('all', 0.008)
     -- engine.amp('all', 10)
-    riff1 = riff.new()
+    playing_riff = riff.new()
+    riff2 = riff.new()
+    riff2:set_pulses(1, 7)
+    parameters.init()
+    parameters.add_riff(2)
 
-    riff1:set_pulses(1, 7)
-    riff1:set_frequency(1, 1, 25)
-    riff1:set_mute(1, 2, 100)
-    riff1:set_frequency(1, 2, 400)
-    riff1:set_bend(1, 2, 0.1)
-    riff1:set_bend(2, 1, 1)
-    -- riff1:set_amp(1, 1, 0.5)
-    -- riff1:set_amp(1, 2, 0.1)
-    riff1:set_frequency(2, 2, 1300)
-    riff1:set_mute(2, 2, 1000)
-    riff1:set_vibrato(2, 2, 0.05)
-    riff1:set_rotation(2, 8)
-    -- riff1:set_steps(2, 3)
-    -- riff1:set_pulses(2, 3)
-    -- riff1:set_pulses(4, 5)
-
-    trigger_step = s {1, 2, 3, 4}
+    trigger_step = s {1}
     current_trigger_step = 1
     freq_step = s {1, 2, 3, 4}
     current_freq_step = 1
@@ -94,11 +82,14 @@ function stop()
     clock.cancel(iter_clock)
     clock.cancel(pluck_clock)
     engine.free_all_notes()
-
 end
 
 function iter()
     while true do
+        local r_id = params:get("selected_riff")
+        -- print("r_id: " .. r_id)
+        playing_riff = riff.get_riff(r_id)
+
         clock.sync(step_clock_speed)
         current_trigger_step = trigger_step()
         current_freq_step = freq_step()
@@ -106,20 +97,20 @@ function iter()
         current_mute_step = mute_step()
         current_bend_step = bend_step()
         current_vibrato_step = vibrato_step()
-        pluck_clock_speed = riff1.triggers[current_trigger_step].steps
+        pluck_clock_speed = playing_riff.triggers[current_trigger_step].steps
     end
 end
 
 function pluck()
     while true do
         clock.sync(1 / pluck_clock_speed)
-        local trig = riff1.triggers[current_trigger_step].sequins()
+        local trig = playing_riff.triggers[current_trigger_step].sequins()
         if trig then
-            local freq = riff1.freqs[current_freq_step].sequins()
-            local amp = riff1.amps[current_amp_step].sequins()
-            local mute = riff1.mutes[current_mute_step].sequins()
-            local bend = riff1.bends[current_bend_step].sequins()
-            local vibrato = riff1.vibratos[current_vibrato_step].sequins()
+            local freq = playing_riff.freqs[current_freq_step].sequins()
+            local amp = playing_riff.amps[current_amp_step].sequins()
+            local mute = playing_riff.mutes[current_mute_step].sequins()
+            local bend = playing_riff.bends[current_bend_step].sequins()
+            local vibrato = playing_riff.vibratos[current_vibrato_step].sequins()
             -- engine.amp('all', amp)
             engine.string_decay('all', mute)
             -- engine.bend_depth('all', bend)
@@ -139,7 +130,7 @@ function mute_clock()
     while true do
         clock.sync(1 / mute_clock_speed)
         current_mute_step = mute_step()
-        engine.string_decay('all', riff1.mutes[current_mute_step]())
+        engine.string_decay('all', playing_riff.mutes[current_mute_step]())
     end
 end
 
@@ -147,7 +138,7 @@ function bend_clock()
     while true do
         clock.sync(1 / mute_clock_speed)
         current_bend_step = bend_step()
-        engine.bend_depth('all', riff1.bends[current_bend_step]())
+        engine.bend_depth('all', playing_riff.bends[current_bend_step]())
     end
 end
 
@@ -155,7 +146,7 @@ function vibrato_clock()
     while true do
         clock.sync(1 / vibrato_clock_speed)
         current_vibrato_step = vibrato_step()
-        engine.vibrato_depth('all', riff1.vibratos[current_vibrato_step]())
+        engine.vibrato_depth('all', playing_riff.vibratos[current_vibrato_step]())
     end
 end
 
@@ -163,7 +154,7 @@ function amp_clock()
     while true do
         clock.sync(1 / amp_clock_speed)
         current_amp_step = amp_step()
-        engine.amp('all', riff1.amps[current_amp_step].sequins())
+        engine.amp('all', playing_riff.amps[current_amp_step].sequins())
     end
 end
 

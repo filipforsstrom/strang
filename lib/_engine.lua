@@ -3,7 +3,7 @@ local _engine = {}
 engine.name = 'Strang'
 
 local min_amp = 0.01
-local max_amp = 10
+local max_amp = 100
 local min_bend = -400
 local max_bend = 400
 

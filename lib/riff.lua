@@ -1,5 +1,12 @@
 local riff = {}
 
+riffs = {}
+local max_phrases = 128
+local max_steps = 128
+local default_pulses = 4
+local default_steps = 4
+local default_rotation = 0
+
 local function update_trigger_sequins(t)
     -- collect values to pass to er.gen
     local pulses = t.pulses
@@ -26,10 +33,10 @@ local function update_sequins(t, e)
 end
 
 function riff.new()
-    local length = 8
+    local id = #riffs + 1
     local r = {
         global = {
-            length = 8
+            length = max_phrases
         },
         triggers = {},
         amps = {},
@@ -42,21 +49,21 @@ function riff.new()
     -- add default data
     for i = 1, r.global.length do
         table.insert(r.triggers, {
-            pulses = 4,
-            steps = 7,
-            rotation = 0,
+            pulses = default_pulses,
+            steps = default_steps,
+            rotation = default_rotation,
             sequins = s {}
         })
         table.insert(r.amps, {
-            data = {0.8},
+            data = {0.5},
             sequins = s {}
         })
         table.insert(r.freqs, {
-            data = {50, 50, 50, 50},
+            data = {50},
             sequins = s {}
         })
         table.insert(r.mutes, {
-            data = {1, 1, 1, 0},
+            data = {1},
             sequins = s {}
         })
         table.insert(r.bends, {
@@ -79,9 +86,35 @@ function riff.new()
         update_sequins(r.triggers[i], r.vibratos[i])
     end
 
+    riffs[id] = r
+
     return setmetatable(r, {
         __index = riff
     })
+end
+
+function riff.get_riff(id)
+    return riffs[id]
+end
+
+function riff.get_max_phrases()
+    return max_phrases
+end
+
+function riff.get_max_steps()
+    return max_steps
+end
+
+function riff.get_default_pulses()
+    return default_pulses
+end
+
+function riff.get_default_steps()
+    return default_steps
+end
+
+function riff.get_default_rotation()
+    return default_rotation
 end
 
 function riff:set_pulses(index, new_pulses)
